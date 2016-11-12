@@ -29,16 +29,17 @@ impl Server for WaldoService {
     fn request_received(self,
                         _data: &[u8],
                         res: &mut Response,
-                        _: &mut Scope<Context>) -> Option<Self> {
+                        scope: &mut Scope<Context>) -> Option<Self> {
 
         use self::WaldoService::*;
 
         match self {
             PhotoInformation(uuid) => {
-                println!("Servicing {:?}", _data);
-                send_string(res, format!("Photo {}", uuid).as_bytes());
+                let photo = scope.get(&uuid);
+                send_string(res, format!("{:?}", photo).as_bytes());
             }
         }
+
         None
     }
 
