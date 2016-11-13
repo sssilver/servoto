@@ -2,6 +2,7 @@ extern crate curl;
 extern crate redis;
 extern crate rotor;
 extern crate rotor_http;
+extern crate xml;
 
 mod context;
 mod error;
@@ -12,6 +13,7 @@ mod waldo_service;
 use rotor_http::server::Fsm;
 use rotor::mio::tcp::TcpListener;
 use std::env;
+use std::net::SocketAddr;
 use std::thread;
 
 use context::Context;
@@ -20,21 +22,29 @@ use waldo_service::WaldoService;
 
 
 fn main() {
-    let listen_address = "0.0.0.0:3000";
+    let listen_address: SocketAddr = "0.0.0.0:3000".parse()
+        .expect("Unable to parse socket address to listen to");
+
     let redis_connection_string = "redis://127.0.0.1:6379";
 
-    println!("Listening for HTTP connections on {}", listen_address);
-    let listen = TcpListener::bind(&listen_address.parse().unwrap()).unwrap();
+    println!("Listening for HTTP connections on {:?}", listen_address);
+    let listen = TcpListener::bind(&listen_address)
+        .expect(&format!("Unable to listen on the socket for {:?}", listen_address));
+
     let num_threads: u32 = env::var("THREADS").unwrap_or("1".to_string()).parse().unwrap();
 
     let mut threads = Vec::new();
     for _ in 0..num_threads {
-        let listener = listen.try_clone().unwrap();
+        let listener = listen.try_clone()
+            .expect("Unable to clone the listening socket");
+
         threads.push(thread::spawn(move || {
-            let event_loop = rotor::Loop::new(&rotor::Config::new()).unwrap();
+            let event_loop = rotor::Loop::new(&rotor::Config::new())
+                .expect("Unable to create the event loop");
 
             // Create one storage connection per thread
-            let storage = Storage::new(redis_connection_string).unwrap();
+            let storage = Storage::new(redis_connection_string)
+                .expect("Unable to connect to the storage");
 
             let mut loop_inst = event_loop.instantiate(Context {
                 database: storage
@@ -42,13 +52,15 @@ fn main() {
 
             loop_inst.add_machine_with(|scope| {
                 Fsm::<WaldoService, _>::new(listener, (), scope)
-            }).unwrap();
+            }).expect("Unable to create the WaldoService machine");
 
-            loop_inst.run().unwrap();
+            loop_inst.run()
+                .expect("Unable to start the event loop");
         }));
     }
 
     for thread in threads {
-        thread.join().unwrap();
+        thread.join()
+            .expect("Thread panic!");
     }
 }

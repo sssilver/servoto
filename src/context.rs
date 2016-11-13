@@ -3,6 +3,10 @@ use error::WaldoError;
 use photo::Photo;
 use storage::Storage;
 
+use std::fs::File;
+use std::io::BufReader;
+use xml::reader::{EventReader, XmlEvent};
+
 
 pub struct Context {
     pub database: Storage
@@ -13,13 +17,13 @@ impl Context {
     pub fn update_catalog(&self) -> Result<(), WaldoError> {
         // Fetch the XML from S3
         let mut http_client = Easy::new();
-        http_client.url("http://s3.amazonaws.com/waldo-recruiting").unwrap();
+        try!(http_client.url("http://s3.amazonaws.com/waldo-recruiting"));
 
-        http_client.write_function(|data| {
+        try!(http_client.write_function(|data| {
             println!("{:?}", data);
             Ok(data.len())
-        }).unwrap();
-        http_client.perform().unwrap();
+        }));
+        try!(http_client.perform());
 
         println!("{}", http_client.response_code().unwrap());
 
