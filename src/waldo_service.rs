@@ -1,12 +1,16 @@
 use rotor_http::server::{RecvMode, Server, Head, Response};
 use rotor::{Scope, Time};
+use std::error::Error;
 use std::time::Duration;
 
 use context::Context;
+use error::WaldoError;
 
 
 pub enum WaldoService {
-    PhotoInformation(String)
+    UpdateCatalog,
+    GetPhoto(String),
+    MethodNotAllowed,
 }
 
 
@@ -21,22 +25,48 @@ impl Server for WaldoService {
 
         use self::WaldoService::*;
 
-        Some((match head.path {
-            path => PhotoInformation(path[1..].to_string())
-        }, RecvMode::Buffered(1024), scope.now() + Duration::new(10, 0)))
+        Some((
+            match head.method {
+                "GET" => GetPhoto(head.path[1..].to_string()),
+                "POST" => UpdateCatalog,
+                _ => MethodNotAllowed,
+            },
+            RecvMode::Buffered(1024),
+            scope.now() + Duration::new(10, 0)
+        ))
     }
 
     fn request_received(self,
-                        _data: &[u8],
-                        res: &mut Response,
+                        _: &[u8],
+                        response: &mut Response,
                         scope: &mut Scope<Context>) -> Option<Self> {
 
         use self::WaldoService::*;
 
         match self {
-            PhotoInformation(uuid) => {
-                let photo = scope.get(&uuid);
-                send_string(res, format!("{:?}", photo).as_bytes());
+            UpdateCatalog => {
+                match scope.update_catalog() {
+                    Ok(()) => respond(response, 200, b"OK"),
+                    Err(error) => respond(response, 500, error.description().as_bytes())
+                }
+            }
+
+            GetPhoto(uuid) => {
+                match scope.get_photo(&uuid) {
+                    Ok(photo) => respond(response, 200, format!("{:?}", photo).as_bytes()),
+                    Err(error) => {
+                        let error_code = match error {
+                            WaldoError::PhotoNotFound(_) => 404,
+                            _ => 500
+                        };
+
+                        respond(response, error_code, error.description().as_bytes())
+                    }
+                }
+            }
+
+            MethodNotAllowed => {
+                respond(response, 405, format!("Method not allowed").as_bytes())
             }
         }
 
@@ -64,10 +94,18 @@ impl Server for WaldoService {
 }
 
 
-fn send_string(res: &mut Response, data: &[u8]) {
-    res.status(200, "OK");
-    res.add_length(data.len() as u64).unwrap();
-    res.done_headers().unwrap();
-    res.write_body(data);
-    res.done();
+fn respond(response: &mut Response, code: u16, body: &[u8]) {
+    let message = match code {
+        200 => "OK",
+        404 => "Not Found",
+        500 => "Internal server error",
+        _ => ""
+    };
+
+    response.status(code, message);
+    response.add_length(body.len() as u64).unwrap();
+    response.done_headers().unwrap();
+    response.write_body(body);
+
+    response.done();
 }

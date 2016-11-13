@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["aharutyunyan <aharutyunyan@rmn.com>"]
 
 [dependencies]
+curl = "0.4.1"
 redis = "0.7.0"
 rotor = "0.6.3"
 rotor-http = "0.7.0"
+serde_xml = "0.9.1"

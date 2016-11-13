@@ -1,3 +1,4 @@
+extern crate curl;
 extern crate redis;
 extern crate rotor;
 extern crate rotor_http;
@@ -13,8 +14,9 @@ use rotor::mio::tcp::TcpListener;
 use std::env;
 use std::thread;
 
-use waldo_service::WaldoService;
 use context::Context;
+use storage::Storage;
+use waldo_service::WaldoService;
 
 
 fn main() {
@@ -32,7 +34,7 @@ fn main() {
             let event_loop = rotor::Loop::new(&rotor::Config::new()).unwrap();
 
             // Create one storage connection per thread
-            let storage = storage::Storage::new(redis_connection_string).unwrap();
+            let storage = Storage::new(redis_connection_string).unwrap();
 
             let mut loop_inst = event_loop.instantiate(Context {
                 database: storage

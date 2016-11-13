@@ -1,4 +1,3 @@
-use std::error;
 use redis;
 
 use photo::Photo;
@@ -25,13 +24,13 @@ impl Storage {
 
     }
 
-    pub fn fetch(&self, key: &str) -> Photo {
-        Photo {
+    pub fn fetch(&self, key: &str) -> Result<Photo, WaldoError> {
+        Ok(Photo {
             key: String::from(key),
             last_modified: String::from("last_modified"),  // TODO: Should be parsed as a DateTime
             etag: String::from("etag"),
             size: 1234,
             storage_class: String::from("storage_class")  // TODO: Should be typed as a StorageClass enum
-        }
+        })
     }
 }
