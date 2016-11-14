@@ -2,7 +2,7 @@ extern crate curl;
 extern crate redis;
 extern crate rotor;
 extern crate rotor_http;
-extern crate xml;
+extern crate xmltree;
 
 mod context;
 mod error;

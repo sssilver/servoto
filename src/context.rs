@@ -1,11 +1,11 @@
-use curl::easy::Easy;
+use curl::easy::{Easy, WriteError};
 use error::WaldoError;
 use photo::Photo;
 use storage::Storage;
 
 use std::fs::File;
 use std::io::BufReader;
-use xml::reader::{EventReader, XmlEvent};
+use std::str::from_utf8;
 
 
 pub struct Context {
@@ -19,13 +19,22 @@ impl Context {
         let mut http_client = Easy::new();
         try!(http_client.url("http://s3.amazonaws.com/waldo-recruiting"));
 
-        try!(http_client.write_function(|data| {
-            println!("{:?}", data);
-            Ok(data.len())
-        }));
-        try!(http_client.perform());
+        let mut response = Vec::new();
 
-        println!("{}", http_client.response_code().unwrap());
+        {
+            let mut transfer = http_client.transfer();
+            transfer.write_function(|data| {
+                response.extend_from_slice(data);
+                Ok(data.len())
+            }).unwrap();
+
+            transfer.perform().unwrap();
+        }
+
+        let photos = Photo::new_many(&response);
+
+        println!("{:?}", photos);
+        println!("Total: {} photos", photos.unwrap().len());
 
         Ok(())
     }
