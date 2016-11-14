@@ -14,7 +14,7 @@ pub struct Storage {
 impl Storage {
     pub fn new(host: &str, port: u16) -> Result<Storage, WaldoError> {
         let client = try!(Client::connect(host, port));
-        let collection = client.db("waldo").collection("photos");
+        let collection = client.db("waldo_assignment_areg").collection("photos");
 
         Ok(Storage {
             collection: collection

@@ -12,6 +12,19 @@ This project is a solution to the Waldo engineering assignment described [here](
  - `POST /` fetches the XML file from HTTP using libcurl and dumps it into MongoDB 
  - Errors come back with HTTP 500
  
+## Installation
+ - [Install Rust](https://www.rust-lang.org/en-US/downloads.html)
+ - Install & launch MongoDB on `127.0.0.1:27017`, or adjust the config in _main.rs:47_
+  - The application will create everything in a collection called `waldo_assignment_areg` (See _storage.rs:17_)
+ - In terminal, navigate to the root directory of the project
+ - `$ cargo run`
+ - Witness that a *GET* request to *http://127.0.0.1:3000/* says "Photo not found", which means the server is up and running
+ - Do a *POST* to *http://127.0.0.1:3000/* to pull the XML and populate Mongo
+ - Send a *GET* to *http://127.0.0.1:3000/<photo_key_id>* and observe the response
+  
+ *Note:* In order to have the app spawn more than 1 processing thread, set an environment variable called `WALDO_THREADS` to the desired number of threads. Example: `$ export WALDO_THREADS="4"`.
+ 
+ 
 ## Technical reasoning
 ### Why Rust?
  - Why not?
@@ -27,7 +40,7 @@ This project is a solution to the Waldo engineering assignment described [here](
  
 ### What would you do better?
 Given enough time, everything :) In order of priority:
- 1. Make `Photo::last_modified` more strongly typed 
+ 1. Make `Photo::last_modified` more strongly typed, similar to `Photo::StorageClass`.
  2. Move the feed part out of the current `POST` endpoint. Perhaps make it a separate service. If not, spawn it in its own separate thread/process
  3. Switch from DOM-based XML parsing to event-based stream parsing. Uses less memory and in this particular instance would also take fewer CPU cycles, albeit is more work
  4. Use [Serde](https://github.com/serde-rs/serde) for serializing/deserializing both XML and BSON and JSON
@@ -37,5 +50,7 @@ Given enough time, everything :) In order of priority:
  8. Although error handling is ~~nearly~~ perfect, add proper logging
  9. Unit test where appropriate, although this particular codebase is already pretty fool proof
 
-## Disclaimer
-Two red bull cans were harmed while shipping this project.
+
+<sub><sup>
+THE FINE PRINT: The sheer amount of fun and learning that happened during this implementation was over the roof. Two red bull cans were harmed while coding the project. It's entirely possible that the person writing the problem description had something completely different in mind, which wouldn't obsolete neither the fun nor the learning mentioned 2 sentences ago. Rust is distributed under the terms of both the MIT license and the Apache License (Version 2.0). Every package the project depends on is distributed under similarly permissive licenses. For questions or concerns, contact sssilver@gmail.com.
+</sup></sub>

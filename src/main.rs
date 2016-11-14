@@ -32,7 +32,7 @@ fn main() {
     let listen = TcpListener::bind(&listen_address)
         .expect(&format!("Unable to listen on the socket for {:?}", listen_address));
 
-    let num_threads: u32 = env::var("THREADS").unwrap_or("1".to_string()).parse().unwrap();
+    let num_threads: u32 = env::var("WALDO_THREADS").unwrap_or("1".to_string()).parse().unwrap();
 
     let mut threads = Vec::new();
     for _ in 0..num_threads {
