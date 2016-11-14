@@ -27,7 +27,7 @@ This project is a solution to the Waldo engineering assignment described [here](
  
 ### What would you do better?
 Given enough time, everything :) In order of priority:
- 1. Make Photo more strongly typed, particularly `last_modified` and `storage_class` fields
+ 1. Make `Photo::last_modified` more strongly typed 
  2. Move the feed part out of the current `POST` endpoint. Perhaps make it a separate service. If not, spawn it in its own separate thread/process
  3. Switch from DOM-based XML parsing to event-based stream parsing. Uses less memory and in this particular instance would also take fewer CPU cycles, albeit is more work
  4. Use [Serde](https://github.com/serde-rs/serde) for serializing/deserializing both XML and BSON and JSON
@@ -39,4 +39,3 @@ Given enough time, everything :) In order of priority:
 
 ## Disclaimer
 Two red bull cans were harmed while shipping this project.
-

@@ -10,6 +10,7 @@ mod context;
 mod error;
 mod photo;
 mod storage;
+mod storage_class;
 mod waldo_service;
 
 use rotor_http::server::Fsm;
