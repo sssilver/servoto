@@ -1,3 +1,4 @@
+use bson;
 use error::WaldoError;
 use error::WaldoError::ParseError;
 use xmltree::Element;
@@ -15,7 +16,7 @@ pub struct Photo {
 
 impl Photo {
     pub fn new_many(xml_data: &[u8]) -> Result<Vec<Photo>, WaldoError> {
-        let root = match Element::parse(xml_data) {
+        match Element::parse(xml_data) {
             Ok(root) => {
                 // Parse a Photo element out of the XML
                 return Photo::parse_many(root);
@@ -23,7 +24,7 @@ impl Photo {
             Err(err) => {
                 return Err(WaldoError::MalformedError(err));
             }
-        };
+        }
     }
 
     /// Parse a single Photo out of an XML element
@@ -57,5 +58,22 @@ impl Photo {
         }
 
         Ok(photos)
+    }
+
+    pub fn to_mongo_document(&self) -> bson::Document {
+        let ref key = self.key;
+        let ref last_modified = self.last_modified;
+        let ref etag = self.etag;
+        let size = self.size;
+        let ref storage_class = self.storage_class;
+
+        doc! {
+            "_id" => key,  // Primary index key
+            "key" => key,
+            "last_modified" => last_modified,
+            "etag" => etag,
+            "size" => size,
+            "storage_class" => storage_class
+        }
     }
 }

@@ -1,27 +1,39 @@
-use redis;
-
-use photo::Photo;
 use error::WaldoError;
+use mongodb::{Client, ThreadedClient};
+use mongodb::db::ThreadedDatabase;
+use mongodb::coll::Collection;
+use photo::Photo;
+
 
 
 pub struct Storage {
-    conn: redis::Connection
+    collection: Collection
 }
 
 
 impl Storage {
-    pub fn new(connection_string: &str) -> Result<Storage, WaldoError> {
-        let client = try!(redis::Client::open(connection_string));
-
-        let conn = try!(client.get_connection());
+    pub fn new(host: &str, port: u16) -> Result<Storage, WaldoError> {
+        let client = try!(Client::connect(host, port));
+        let collection = client.db("waldo").collection("photos");
 
         Ok(Storage {
-            conn: conn
+            collection: collection
         })
     }
 
-    pub fn store(photo: Photo) {
+    pub fn store_one(&self, photo: Photo) -> Result<(), WaldoError> {
+        try!(self.collection.insert_one(photo.to_mongo_document(), None));
 
+        Ok(())
+        //self.conn.set(photo.key, photo);
+    }
+
+    pub fn store_many(&self, photos: Vec<Photo>) -> Result<(), WaldoError> {
+        for photo in photos {
+            try!(self.store_one(photo));
+        }
+
+        Ok(())
     }
 
     pub fn fetch(&self, key: &str) -> Result<Photo, WaldoError> {

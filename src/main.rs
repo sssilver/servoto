@@ -1,5 +1,7 @@
+#[macro_use(bson, doc)]
+extern crate bson;
 extern crate curl;
-extern crate redis;
+extern crate mongodb;
 extern crate rotor;
 extern crate rotor_http;
 extern crate xmltree;
@@ -25,8 +27,6 @@ fn main() {
     let listen_address: SocketAddr = "0.0.0.0:3000".parse()
         .expect("Unable to parse socket address to listen to");
 
-    let redis_connection_string = "redis://127.0.0.1:6379";
-
     println!("Listening for HTTP connections on {:?}", listen_address);
     let listen = TcpListener::bind(&listen_address)
         .expect(&format!("Unable to listen on the socket for {:?}", listen_address));
@@ -43,7 +43,7 @@ fn main() {
                 .expect("Unable to create the event loop");
 
             // Create one storage connection per thread
-            let storage = Storage::new(redis_connection_string)
+            let storage = Storage::new("localhost", 27017)
                 .expect("Unable to connect to the storage");
 
             let mut loop_inst = event_loop.instantiate(Context {

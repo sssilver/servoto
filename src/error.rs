@@ -1,5 +1,5 @@
 use curl;
-use redis::RedisError;
+use mongodb;
 use std::error;
 use std::fmt;
 use std::num;
@@ -8,7 +8,7 @@ use xmltree;
 
 #[derive(Debug)]
 pub enum WaldoError {
-    StorageError(RedisError),
+    StorageError(mongodb::error::Error),
     PhotoNotFound(&'static str),
     NetworkError,
     MalformedError(xmltree::ParseError),
@@ -52,15 +52,15 @@ impl error::Error for WaldoError {
 }
 
 
-impl From<RedisError> for WaldoError {
-    fn from(err: RedisError) -> WaldoError {
+impl From<mongodb::error::Error> for WaldoError {
+    fn from(err: mongodb::error::Error) -> WaldoError {
         WaldoError::StorageError(err)
     }
 }
 
 
 impl From<curl::Error> for WaldoError {
-    fn from(err: curl::Error) -> WaldoError {
+    fn from(_: curl::Error) -> WaldoError {
         WaldoError::NetworkError
     }
 }
@@ -74,7 +74,7 @@ impl From<xmltree::ParseError> for WaldoError {
 
 
 impl From<num::ParseIntError> for WaldoError {
-    fn from(err: num::ParseIntError) -> WaldoError {
+    fn from(_: num::ParseIntError) -> WaldoError {
         WaldoError::ParseError
     }
 }

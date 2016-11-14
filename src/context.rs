@@ -1,11 +1,7 @@
-use curl::easy::{Easy, WriteError};
+use curl::easy::Easy;
 use error::WaldoError;
 use photo::Photo;
 use storage::Storage;
-
-use std::fs::File;
-use std::io::BufReader;
-use std::str::from_utf8;
 
 
 pub struct Context {
@@ -31,10 +27,14 @@ impl Context {
             transfer.perform().unwrap();
         }
 
-        let photos = Photo::new_many(&response);
+        // Parse all the photos
+        let photos = try!(Photo::new_many(&response));
 
         println!("{:?}", photos);
-        println!("Total: {} photos", photos.unwrap().len());
+        println!("Total: {} photos", photos.len());
+
+        // ...and shove them into our storage
+        try!(self.database.store_many(photos));
 
         Ok(())
     }
