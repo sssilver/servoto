@@ -4,7 +4,7 @@ This project is a solution to the Waldo engineering assignment described [here](
 ## Gory details
  - The application is entirely written in Rust, and can be compiled using the current stable version of rustc (1.13.0 at the time of this writing).
  - The codebase is roughly ~350 lines
- - The service uses asynchronous I/O + a pool of 1---`env::var("THREADS")` threads to maximize performance (see _main.rs_)
+ - The service uses a combination of asynchronous I/O using epoll + a pool of 1--`env::var("WALDO_THREADS")` threads to maximize performance (see _main.rs_)
  - Persistence is achieved through MongoDB (see _storage.rs_)
  - Each thread maintains its own connection to MongoDB
  - `GET /<photo_key>` returns a JSON-ish response with the photo information, if the requested key exists
