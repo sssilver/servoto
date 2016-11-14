@@ -1,3 +1,4 @@
+use bson;
 use curl;
 use mongodb;
 use std::error;
@@ -9,10 +10,11 @@ use xmltree;
 #[derive(Debug)]
 pub enum WaldoError {
     StorageError(mongodb::error::Error),
-    PhotoNotFound(&'static str),
+    PhotoNotFound(String),
     NetworkError,
     MalformedError(xmltree::ParseError),
-    ParseError
+    ParseError,
+    ValueError
 }
 
 
@@ -24,6 +26,7 @@ impl fmt::Display for WaldoError {
             WaldoError::NetworkError => write!(f, "Network error"),
             WaldoError::MalformedError(ref err) => write!(f, "XML parsing error: {}", err),
             WaldoError::ParseError => write!(f, "Parse error"),
+            WaldoError::ValueError => write!(f, "Value type error"),
         }
     }
 }
@@ -33,10 +36,11 @@ impl error::Error for WaldoError {
     fn description(&self) -> &str {
         match *self {
             WaldoError::StorageError(ref err) => err.description(),
-            WaldoError::PhotoNotFound(ref err) => err,
+            WaldoError::PhotoNotFound(_) => "Photo not found",
             WaldoError::NetworkError => "Network error",
             WaldoError::MalformedError(ref err) => err.description(),
-            WaldoError::ParseError => "Parse error"
+            WaldoError::ParseError => "Parse error",
+            WaldoError::ValueError => "Value type error"
         }
     }
 
@@ -47,6 +51,7 @@ impl error::Error for WaldoError {
             WaldoError::NetworkError => None,
             WaldoError::MalformedError(ref err) => Some(err),
             WaldoError::ParseError => None,
+            WaldoError::ValueError => None
         }
     }
 }
@@ -76,5 +81,12 @@ impl From<xmltree::ParseError> for WaldoError {
 impl From<num::ParseIntError> for WaldoError {
     fn from(_: num::ParseIntError) -> WaldoError {
         WaldoError::ParseError
+    }
+}
+
+
+impl From<bson::ValueAccessError> for WaldoError {
+    fn from(_: bson::ValueAccessError) -> WaldoError {
+        WaldoError::ValueError
     }
 }

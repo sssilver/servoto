@@ -76,4 +76,20 @@ impl Photo {
             "storage_class" => storage_class
         }
     }
+
+    pub fn from_mongo_document(document: bson::Document) -> Result<Photo, WaldoError> {
+        let key = try!(document.get_str("_id"));
+        let last_modified = try!(document.get_str("last_modified"));
+        let etag = try!(document.get_str("etag"));
+        let size: u64 = try!(document.get_i64("size")) as u64;
+        let storage_class = try!(document.get_str("storage_class"));
+
+        Ok(Photo {
+            key: String::from(key),
+            last_modified: String::from(last_modified),
+            etag: String::from(etag),
+            size: size,
+            storage_class: String::from(storage_class),
+        })
+    }
 }

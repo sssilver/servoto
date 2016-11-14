@@ -60,7 +60,7 @@ impl Server for WaldoService {
                             _ => 500
                         };
 
-                        respond(response, error_code, error.description().as_bytes())
+                        respond(response, error_code, error.to_string().as_bytes())
                     }
                 }
             }

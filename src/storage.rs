@@ -25,24 +25,22 @@ impl Storage {
         try!(self.collection.insert_one(photo.to_mongo_document(), None));
 
         Ok(())
-        //self.conn.set(photo.key, photo);
     }
 
     pub fn store_many(&self, photos: Vec<Photo>) -> Result<(), WaldoError> {
         for photo in photos {
-            try!(self.store_one(photo));
+            try!(self.store_one(photo));  // TODO: Use collection::insert_many() instead!
         }
 
         Ok(())
     }
 
-    pub fn fetch(&self, key: &str) -> Result<Photo, WaldoError> {
-        Ok(Photo {
-            key: String::from(key),
-            last_modified: String::from("last_modified"),  // TODO: Should be parsed as a DateTime
-            etag: String::from("etag"),
-            size: 1234,
-            storage_class: String::from("storage_class")  // TODO: Should be typed as a StorageClass enum
-        })
+    pub fn fetch<'a, 'b>(&'a self, key: &'b str) -> Result<Photo, WaldoError> {
+        let photo_document = match try!(self.collection.find_one(Some(doc! { "_id" => key }), None)) {
+            Some(photo_document) => photo_document,
+            None => return Err(WaldoError::PhotoNotFound(String::from(key)))
+        };
+
+        Photo::from_mongo_document(photo_document)
     }
 }
