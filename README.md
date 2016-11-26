@@ -16,6 +16,7 @@ This project is a solution to the Waldo engineering assignment described [here](
  - [Install Rust](https://www.rust-lang.org/en-US/downloads.html)
  - Install & launch MongoDB on `127.0.0.1:27017`, or adjust the config in _main.rs:47_
   - The application will create everything in a collection called `waldo_assignment_areg` (See _storage.rs:17_)
+ - Install _gexiv2_, the Gnome photo metadata library. On macOS, this is just `brew install gexiv2`.
  - In terminal, navigate to the root directory of the project
  - `$ cargo run`
  - Witness that a *GET* request to *http://127.0.0.1:3000/* says "Photo not found", which means the server is up and running

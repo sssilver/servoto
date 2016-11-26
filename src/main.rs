@@ -2,6 +2,7 @@
 extern crate bson;
 extern crate curl;
 extern crate mongodb;
+extern crate rexiv2;
 extern crate rotor;
 extern crate rotor_http;
 extern crate xmltree;
