@@ -77,19 +77,19 @@ impl Server for WaldoService {
     // We don't support proxy servers, so the following four functions are not implemented
     //
     fn request_chunk(self, _chunk: &[u8], _response: &mut Response, _scope: &mut Scope<Context>) -> Option<Self> {
-        unreachable!();
+        unreachable!()
     }
 
     fn request_end(self, _response: &mut Response, _scope: &mut Scope<Context>) -> Option<Self> {
-        unreachable!();
+        unreachable!()
     }
 
     fn timeout(self, _response: &mut Response, _scope: &mut Scope<Context>) -> Option<(Self, Time)> {
-        unimplemented!();
+        unimplemented!()
     }
 
     fn wakeup(self, _response: &mut Response, _scope: &mut Scope<Context>) -> Option<Self> {
-        unimplemented!();
+        unimplemented!()
     }
 }
 

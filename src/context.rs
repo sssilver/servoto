@@ -13,7 +13,7 @@ impl Context {
     pub fn update_catalog(&self) -> Result<(), WaldoError> {
         // Fetch the XML from S3
         let mut http_client = Easy::new();
-        try!(http_client.url("http://s3.amazonaws.com/waldo-recruiting"));
+        http_client.url("http://s3.amazonaws.com/waldo-recruiting")?;
 
         let mut response = Vec::new();
 
@@ -28,13 +28,13 @@ impl Context {
         }
 
         // Parse all the photos
-        let photos = try!(Photo::new_many(&response));
+        let photos = Photo::new_many(&response)?;
 
         println!("{:?}", photos);
         println!("Total: {} photos", photos.len());
 
         // ...and shove them into our storage
-        try!(self.database.store_many(photos));
+        self.database.store_many(photos)?;
 
         Ok(())
     }

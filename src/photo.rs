@@ -34,8 +34,8 @@ impl Photo {
         let key = xml_element.take_child("Key").ok_or(ParseError)?.text.ok_or(ParseError)?;
         let last_modified = xml_element.take_child("LastModified").ok_or(ParseError)?.text.ok_or(ParseError)?;
         let etag = xml_element.take_child("ETag").ok_or(ParseError)?.text.ok_or(ParseError)?;
-        let size = try!(String::from(xml_element.take_child("Size").ok_or(ParseError)?.text.ok_or(ParseError)?).parse());
-        let storage_class = try!(StorageClass::from_str(&xml_element.take_child("StorageClass").ok_or(ParseError)?.text.ok_or(ParseError)?));
+        let size = String::from(xml_element.take_child("Size").ok_or(ParseError)?.text.ok_or(ParseError)?).parse()?;
+        let storage_class = StorageClass::from_str(&xml_element.take_child("StorageClass").ok_or(ParseError)?.text.ok_or(ParseError)?)?;
 
         return Ok(Photo {
             key: key,
@@ -53,7 +53,7 @@ impl Photo {
         loop {
             match xml_element.take_child("Contents") {
                 Some(child_xml) => {
-                    photos.push(try!(Photo::parse_one(child_xml)));
+                    photos.push(Photo::parse_one(child_xml)?);
                 },
                 None => break
             }
@@ -80,11 +80,11 @@ impl Photo {
     }
 
     pub fn from_mongo_document(document: bson::Document) -> Result<Photo, WaldoError> {
-        let key = String::from(try!(document.get_str("_id")));
-        let last_modified = String::from(try!(document.get_str("last_modified")));
-        let etag = String::from(try!(document.get_str("etag")));
-        let size: u64 = try!(document.get_i64("size")) as u64;
-        let storage_class = try!(StorageClass::from_str(try!(document.get_str("storage_class"))));
+        let key = String::from(document.get_str("_id")?);
+        let last_modified = String::from(document.get_str("last_modified")?);
+        let etag = String::from(document.get_str("etag")?);
+        let size: u64 = document.get_i64("size")? as u64;
+        let storage_class = StorageClass::from_str(document.get_str("storage_class")?)?;
 
         Ok(Photo {
             key: key,
