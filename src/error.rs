@@ -1,6 +1,7 @@
 use bson;
 use curl;
 use mongodb;
+use rexiv2;
 use std::error;
 use std::fmt;
 use std::num;
@@ -14,7 +15,8 @@ pub enum WaldoError {
     NetworkError,
     MalformedError(xmltree::ParseError),
     ParseError,
-    ValueError
+    ValueError,
+    PhotoParseError(rexiv2::Rexiv2Error)
 }
 
 
@@ -27,6 +29,7 @@ impl fmt::Display for WaldoError {
             WaldoError::MalformedError(ref err) => write!(f, "XML parsing error: {}", err),
             WaldoError::ParseError => write!(f, "Parse error"),
             WaldoError::ValueError => write!(f, "Value type error"),
+            WaldoError::PhotoParseError(ref err) => write!(f, "Unable to parse the EXIF data: {}", err),
         }
     }
 }
@@ -40,7 +43,8 @@ impl error::Error for WaldoError {
             WaldoError::NetworkError => "Network error",
             WaldoError::MalformedError(ref err) => err.description(),
             WaldoError::ParseError => "Parse error",
-            WaldoError::ValueError => "Value type error"
+            WaldoError::ValueError => "Value type error",
+            WaldoError::PhotoParseError(ref err) => err.description()
         }
     }
 
@@ -51,7 +55,8 @@ impl error::Error for WaldoError {
             WaldoError::NetworkError => None,
             WaldoError::MalformedError(ref err) => Some(err),
             WaldoError::ParseError => None,
-            WaldoError::ValueError => None
+            WaldoError::ValueError => None,
+            WaldoError::PhotoParseError(ref err) => Some(err)
         }
     }
 }
@@ -88,5 +93,12 @@ impl From<num::ParseIntError> for WaldoError {
 impl From<bson::ValueAccessError> for WaldoError {
     fn from(_: bson::ValueAccessError) -> WaldoError {
         WaldoError::ValueError
+    }
+}
+
+
+impl From<rexiv2::Rexiv2Error> for WaldoError {
+    fn from(err: rexiv2::Rexiv2Error) -> WaldoError {
+        WaldoError::PhotoParseError(err)
     }
 }

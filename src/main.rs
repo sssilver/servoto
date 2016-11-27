@@ -8,6 +8,7 @@ extern crate rotor_http;
 extern crate xmltree;
 
 mod context;
+mod download;
 mod error;
 mod photo;
 mod storage;

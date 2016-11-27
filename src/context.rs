@@ -1,6 +1,6 @@
-use curl::easy::Easy;
+use download::Downloader;
 use error::WaldoError;
-use photo::Photo;
+use photo::{Photo, PhotoResource};
 use storage::Storage;
 
 
@@ -12,34 +12,37 @@ pub struct Context {
 impl Context {
     pub fn update_catalog(&self) -> Result<(), WaldoError> {
         // Fetch the XML from S3
-        let mut http_client = Easy::new();
-        http_client.url("http://s3.amazonaws.com/waldo-recruiting")?;
+        let downloader = Downloader {
+            uri: "http://s3.amazonaws.com/waldo-recruiting".to_string()
+        };
 
-        let mut response = Vec::new();
+        downloader.download(Some("".to_string()), |response| -> Result<(), WaldoError> {
+            // Parse all the photo resources
+            let photo_resources = PhotoResource::new_many(&response)?;
 
-        {
-            let mut transfer = http_client.transfer();
-            transfer.write_function(|data| {
-                response.extend_from_slice(data);
-                Ok(data.len())
-            }).unwrap();
+            println!("{:?}", photo_resources);
+            println!("Total: {} photos", photo_resources.len());
 
-            transfer.perform().unwrap();
-        }
+            // Download all of them
+            for photo_resource in photo_resources {
+                downloader.download_photo(photo_resource, |response| -> Result<(), WaldoError> {
+                    // Photo data is downloaded; parse the photo
+                    let photo = Photo::new(response)?;
 
-        // Parse all the photos
-        let photos = Photo::new_many(&response)?;
+                    // ...and shove it into our storage
+                    //self.database.store(photos)?;
 
-        println!("{:?}", photos);
-        println!("Total: {} photos", photos.len());
+                    Ok(())
+                })?
+            }
 
-        // ...and shove them into our storage
-        self.database.store_many(photos)?;
+            Ok(())
+        })?;
 
         Ok(())
     }
 
-    pub fn get_photo(&self, uuid: &str) -> Result<Photo, WaldoError> {
+    pub fn get_photo(&self, uuid: &str) -> Result<PhotoResource, WaldoError> {
         self.database.fetch(uuid)
     }
 }
