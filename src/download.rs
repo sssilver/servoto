@@ -29,17 +29,17 @@ impl Downloader {
             transfer.write_function(|data| {
                 response.extend_from_slice(data);
                 Ok(data.len())
-            }).unwrap();
+            })?;
 
-            transfer.perform().unwrap();
+            transfer.perform()?;
         }
 
         completion(&response)
     }
 
-    pub fn download_photo<F>(&self, photo_resource: PhotoResource, mut completion: F) -> Result<(), WaldoError>
+    pub fn download_photo<F>(&self, photo_resource: &PhotoResource, completion: F) -> Result<(), WaldoError>
         where F: FnMut(&[u8]) -> Result<(), WaldoError> {
 
-        self.download(Some(photo_resource.key), completion)
+        self.download(Some(photo_resource.key.clone()), completion)
     }
 }

@@ -1,3 +1,4 @@
+#![feature(proc_macro)]
 #[macro_use(bson, doc)]
 extern crate bson;
 extern crate curl;
@@ -5,6 +6,8 @@ extern crate mongodb;
 extern crate rexiv2;
 extern crate rotor;
 extern crate rotor_http;
+#[macro_use]
+extern crate serde_derive;
 extern crate xmltree;
 
 mod context;

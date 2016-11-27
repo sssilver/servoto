@@ -1,4 +1,3 @@
-use bson;
 use error::WaldoError;
 use error::WaldoError::ParseError;
 use rexiv2::Metadata;
@@ -63,51 +62,18 @@ impl PhotoResource {
 
         Ok(photos)
     }
-
-    pub fn to_mongo_document(&self) -> bson::Document {
-        let ref key = self.key;
-        let ref last_modified = self.last_modified;
-        let ref etag = self.etag;
-        let size = self.size;
-        let ref storage_class = self.storage_class;
-
-        doc! {
-            "_id" => key,  // Primary index key
-            "key" => key,
-            "last_modified" => last_modified,
-            "etag" => etag,
-            "size" => size,
-            "storage_class" => storage_class
-        }
-    }
-
-    pub fn from_mongo_document(document: bson::Document) -> Result<PhotoResource, WaldoError> {
-        let key = String::from(document.get_str("_id")?);
-        let last_modified = String::from(document.get_str("last_modified")?);
-        let etag = String::from(document.get_str("etag")?);
-        let size: u64 = document.get_i64("size")? as u64;
-        let storage_class = StorageClass::from_str(document.get_str("storage_class")?)?;
-
-        Ok(PhotoResource {
-            key: key,
-            last_modified: last_modified,
-            etag: etag,
-            size: size,
-            storage_class: storage_class
-        })
-    }
 }
 
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Photo {
-    pub exif_tags: HashMap<String, String>,
-    data: Vec<u8>
+    pub key: String,
+    pub exif_tags: HashMap<String, String>
 }
 
 
 impl Photo {
-    pub fn new(data: &[u8]) -> Result<Photo, WaldoError> {
+    pub fn new(key: &str, data: &[u8]) -> Result<Photo, WaldoError> {
         // Parse EXIF
         let meta = Metadata::new_from_buffer(data)?;
         let mut exif_tags = HashMap::new();
@@ -118,9 +84,11 @@ impl Photo {
             exif_tags.insert(tag_name.to_string(), meta.get_tag_string(&tag_name)?);
         }
 
+        println!("EXIF: {:?}", exif_tags);
+
         Ok(Photo {
-            exif_tags: exif_tags,
-            data: data.to_vec()
+            key: key.to_string(),
+            exif_tags: exif_tags
         })
     }
 }

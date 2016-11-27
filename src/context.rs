@@ -25,15 +25,18 @@ impl Context {
 
             // Download all of them
             for photo_resource in photo_resources {
-                downloader.download_photo(photo_resource, |response| -> Result<(), WaldoError> {
+                if let Err(err) = downloader.download_photo(&photo_resource, |response| -> Result<(), WaldoError> {
                     // Photo data is downloaded; parse the photo
-                    let photo = Photo::new(response)?;
+                    let photo = Photo::new(&photo_resource.key, response)?;
 
                     // ...and shove it into our storage
-                    //self.database.store(photos)?;
+                    self.database.store_one(photo)?;
 
                     Ok(())
-                })?
+                }) {
+                    println!("Error parsing or downloading photo {}: {}", photo_resource.key, err);
+                    continue;
+                }
             }
 
             Ok(())
@@ -42,7 +45,7 @@ impl Context {
         Ok(())
     }
 
-    pub fn get_photo(&self, uuid: &str) -> Result<PhotoResource, WaldoError> {
+    pub fn get_photo(&self, uuid: &str) -> Result<Photo, WaldoError> {
         self.database.fetch(uuid)
     }
 }

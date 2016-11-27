@@ -1,8 +1,9 @@
+use bson;
 use error::WaldoError;
 use mongodb::{Client, ThreadedClient};
 use mongodb::db::ThreadedDatabase;
 use mongodb::coll::Collection;
-use photo::PhotoResource;
+use photo::Photo;
 
 
 
@@ -21,26 +22,31 @@ impl Storage {
         })
     }
 
-    pub fn store_one(&self, photo: PhotoResource) -> Result<(), WaldoError> {
-        self.collection.insert_one(photo.to_mongo_document(), None)?;
+    pub fn store_one(&self, photo: Photo) -> Result<(), WaldoError> {
+        let serialized = match bson::to_bson(&photo) {
+            Ok(serialized) => serialized,
+            Err(err) => {
+                println!("Error: {}", err);
+                return Err(WaldoError::ParseError);
+            }
+        };
 
-        Ok(())
-    }
-
-    pub fn store_many(&self, photos: Vec<PhotoResource>) -> Result<(), WaldoError> {
-        for photo in photos {
-            self.store_one(photo)?;  // TODO: Use collection::insert_many() instead!
+        if let bson::Bson::Document(doc) = serialized { self.collection.insert_one(doc, None)?; } else {
+            return Err(WaldoError::ParseError);
         }
 
         Ok(())
     }
 
-    pub fn fetch<'a, 'b>(&'a self, key: &'b str) -> Result<PhotoResource, WaldoError> {
+    pub fn fetch<'a, 'b>(&'a self, key: &'b str) -> Result<Photo, WaldoError> {
         let photo_document = match self.collection.find_one(Some(doc! { "_id" => key }), None)? {
             Some(photo_document) => photo_document,
             None => return Err(WaldoError::PhotoNotFound(String::from(key)))
         };
 
-        PhotoResource::from_mongo_document(photo_document)
+        match bson::from_bson(bson::Bson::Document(photo_document)) {
+            Ok(bson) => Ok(bson),
+            Err(_) => Err(WaldoError::ParseError)
+        }
     }
 }
