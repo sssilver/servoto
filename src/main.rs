@@ -10,6 +10,7 @@ extern crate rotor;
 extern crate rotor_http;
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_json;
 extern crate xmltree;
 
 mod context;

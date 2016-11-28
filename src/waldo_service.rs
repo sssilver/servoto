@@ -1,5 +1,6 @@
 use rotor_http::server::{RecvMode, Server, Head, Response};
 use rotor::{Scope, Time};
+use serde_json;
 use std::error::Error;
 use std::time::Duration;
 
@@ -53,7 +54,7 @@ impl Server for WaldoService {
 
             GetPhoto(uuid) => {
                 match scope.get_photo(&uuid) {
-                    Ok(photo) => respond(response, 200, format!("{:?}", photo).as_bytes()),
+                    Ok(photo) => respond(response, 200, serde_json::to_string(&photo).unwrap().as_bytes()),
                     Err(error) => {
                         let error_code = match error {
                             WaldoError::PhotoNotFound(_) => 404,
