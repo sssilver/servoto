@@ -1,16 +1,16 @@
-use crossbeam::sync::MsQueue;
+use crossbeam::sync::SegQueue;
 use download::download;
 use error::WaldoError;
 use photo::{Photo, PhotoResource};
 use std::sync::Arc;
-use std::thread::{spawn, JoinHandle, Thread};
+use std::thread::{current, JoinHandle, spawn, Thread};
 use storage::Storage;
 
 
 pub struct Processor {
     num_threads: usize,
     threads: Vec<JoinHandle<Thread>>,
-    queue: Arc<MsQueue<String>>,  // A Michael-Scott queue of photo names to download & process
+    queue: Arc<SegQueue<String>>,  // A Michael-Scott segmented queue of photo names to download & process
 
     database: Arc<Storage>
 }
@@ -21,7 +21,7 @@ impl Processor {
         Processor {
             num_threads: num_threads,
             threads: Vec::new(),
-            queue: Arc::new(MsQueue::new()),
+            queue: Arc::new(SegQueue::new()),
 
             database: storage
         }
@@ -53,7 +53,11 @@ impl Processor {
 
                     // Try popping from the queue; block if empty
                     loop {
-                        let photo_key = thread_queue.pop();
+                        let photo_key = match thread_queue.try_pop() {
+                            Some(item) => item,
+                            None => { break; }  // The queue is empty--terminate the thread
+                        };
+
                         let url = uri.clone() + "/" + &photo_key;
 
                         if let Err(err) = download(&url, |response| -> Result<(), WaldoError> {
@@ -71,6 +75,8 @@ impl Processor {
 
                         println!("Item for thread {}!!", thread_id);
                     }
+
+                    current()
                 }));
             }
 
