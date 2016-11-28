@@ -6,7 +6,7 @@ This project is a solution to the Waldo engineering assignment described
  - The application is entirely written in Rust, and can be compiled using the
  current **nightly** version of rustc (1.15.x at the time of this writing). Note that
  the nightly limitation is imposed by *Serde*, and not the core codebase
- - The codebase is roughly ~350 lines
+ - The codebase is roughly ~470 lines
  - The service uses a combination of asynchronous I/O using epoll + a pool of
  1--`env::var("WALDO_THREADS")` threads to maximize performance (see _main.rs_)
  - Persistence is achieved through MongoDB (see _storage.rs_)
