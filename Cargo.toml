@@ -4,9 +4,11 @@ version = "0.1.0"
 authors = ["aharutyunyan <aharutyunyan@rmn.com>"]
 
 [dependencies]
+crossbeam = "0.2"
 curl = "0.4"
 bson = "0.3"
 mongodb = "0.1"
+num_cpus = "1.1"
 rexiv2 = "0.4"
 rotor = "0.6"
 rotor-http = "0.7"
