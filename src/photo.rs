@@ -67,6 +67,7 @@ impl PhotoResource {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Photo {
+    #[serde(rename = "_id")]
     pub key: String,
     pub exif_tags: HashMap<String, String>
 }
@@ -83,8 +84,6 @@ impl Photo {
         for tag_name in tag_names {
             exif_tags.insert(tag_name.to_string(), meta.get_tag_string(&tag_name)?);
         }
-
-        println!("EXIF: {:?}", exif_tags);
 
         Ok(Photo {
             key: key.to_string(),
